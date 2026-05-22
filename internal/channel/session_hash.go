@@ -47,7 +47,13 @@ func fnv64Hex(b []byte) string {
 }
 
 // openaiHashSource builds a stable session fingerprint for OpenAI chat-completions style bodies.
-// Uses messages[0] (the first turn never changes across a conversation).
+//
+// Hash domain = messages[0] + messages[1] (when present).
+// Rationale:
+//   - messages[0] alone is usually the system prompt — identical across different conversations,
+//     which would over-aggregate distinct chats onto the same key.
+//   - Adding messages[1] (the first user turn) provides per-conversation differentiation while
+//     remaining stable: once the conversation starts, messages[0..1] never change.
 func openaiHashSource(body []byte) []byte {
 	type req struct {
 		Messages []json.RawMessage `json:"messages"`
@@ -56,7 +62,15 @@ func openaiHashSource(body []byte) []byte {
 	if err := json.Unmarshal(body, &r); err != nil || len(r.Messages) == 0 {
 		return nil
 	}
-	return r.Messages[0]
+	n := len(r.Messages)
+	if n > 2 {
+		n = 2
+	}
+	prefix, err := json.Marshal(r.Messages[:n])
+	if err != nil {
+		return r.Messages[0]
+	}
+	return prefix
 }
 
 // anthropicHashSource builds the fingerprint as system + messages[0].
@@ -78,7 +92,7 @@ func anthropicHashSource(body []byte) []byte {
 }
 
 // geminiHashSource builds the fingerprint from systemInstruction + contents[0] for native format,
-// or messages[0] when an OpenAI-compatible body is present (v1beta/openai path).
+// or messages[0..1] when an OpenAI-compatible body is present (v1beta/openai path).
 func geminiHashSource(body []byte) []byte {
 	type req struct {
 		SystemInstruction  json.RawMessage   `json:"systemInstruction"`
@@ -102,14 +116,22 @@ func geminiHashSource(body []byte) []byte {
 		return out
 	}
 	if len(r.Messages) > 0 {
-		return r.Messages[0]
+		n := len(r.Messages)
+		if n > 2 {
+			n = 2
+		}
+		prefix, err := json.Marshal(r.Messages[:n])
+		if err != nil {
+			return r.Messages[0]
+		}
+		return prefix
 	}
 	return nil
 }
 
 // openaiResponseHashSource handles OpenAI Responses API:
-// - messages[0] when present
-// - else the input field (string or structured first turn)
+//   - messages[0..1] when present (same rationale as openaiHashSource)
+//   - else the input field (string or structured first turn)
 func openaiResponseHashSource(body []byte) []byte {
 	type req struct {
 		Messages []json.RawMessage `json:"messages"`
@@ -120,7 +142,15 @@ func openaiResponseHashSource(body []byte) []byte {
 		return nil
 	}
 	if len(r.Messages) > 0 {
-		return r.Messages[0]
+		n := len(r.Messages)
+		if n > 2 {
+			n = 2
+		}
+		prefix, err := json.Marshal(r.Messages[:n])
+		if err != nil {
+			return r.Messages[0]
+		}
+		return prefix
 	}
 	if len(r.Input) > 0 {
 		return r.Input
