@@ -42,6 +42,12 @@ type SystemSettings struct {
 	KeyValidationConcurrency     int    `json:"key_validation_concurrency" default:"10" name:"config.key_validation_concurrency" category:"config.category.key" desc:"config.key_validation_concurrency_desc" validate:"required,min=1"`
 	KeyValidationTimeoutSeconds  int    `json:"key_validation_timeout_seconds" default:"20" name:"config.key_validation_timeout" category:"config.category.key" desc:"config.key_validation_timeout_desc" validate:"required,min=1"`
 
+	// 粘性会话(同一会话连续请求复用同一 key,以利用上游 prompt cache)
+	EnableStickySession      bool   `json:"enable_sticky_session" default:"false" name:"config.enable_sticky_session" category:"config.category.sticky" desc:"config.enable_sticky_session_desc"`
+	StickySessionTTL         int    `json:"sticky_session_ttl" default:"600" name:"config.sticky_session_ttl" category:"config.category.sticky" desc:"config.sticky_session_ttl_desc" validate:"required,min=1"`
+	StickySessionKeyStrategy string `json:"sticky_session_key_strategy" default:"header_then_hash" name:"config.sticky_session_key_strategy" category:"config.category.sticky" desc:"config.sticky_session_key_strategy_desc"`
+	StickySessionHeaderName  string `json:"sticky_session_header_name" default:"X-Session-Id" name:"config.sticky_session_header_name" category:"config.category.sticky" desc:"config.sticky_session_header_name_desc"`
+
 	// For cache
 	ProxyKeysMap map[string]struct{} `json:"-"`
 }

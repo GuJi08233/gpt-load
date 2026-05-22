@@ -96,6 +96,11 @@ func (ch *GeminiChannel) ExtractModel(c *gin.Context, bodyBytes []byte) string {
 	return ""
 }
 
+// ExtractSessionKey scopes the hash to systemInstruction + contents[0] (native) or messages[0] (OpenAI-compat).
+func (ch *GeminiChannel) ExtractSessionKey(c *gin.Context, bodyBytes []byte, strategy, headerName string) string {
+	return extractSessionKey(c, bodyBytes, strategy, headerName, geminiHashSource)
+}
+
 // ValidateKey checks if the given API key is valid by making a generateContent request.
 func (ch *GeminiChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey, group *models.Group) (bool, error) {
 	upstreamURL := ch.getUpstreamURL()

@@ -174,10 +174,21 @@ var MessagesZhCN = map[string]string{
 	"config.key_validation_timeout":          "密钥验证超时（秒）",
 	"config.key_validation_timeout_desc":     "后台定时验证单个 Key 时的 API 请求超时时间（秒）。",
 
+	// Sticky session related
+	"config.enable_sticky_session":           "启用粘性会话",
+	"config.enable_sticky_session_desc":      "启用后,同一会话的连续请求将复用同一个 API key,以利用上游 prompt cache 提升命中率、降低成本。",
+	"config.sticky_session_ttl":              "粘性映射 TTL（秒）",
+	"config.sticky_session_ttl_desc":         "会话与 key 的粘性映射过期时间(秒)。可参考上游 prompt cache 留存时长设置。",
+	"config.sticky_session_key_strategy":     "会话识别策略",
+	"config.sticky_session_key_strategy_desc": "header_then_hash:优先 header,无则按请求内容前缀 hash;header_only:仅依赖 header;hash_only:仅按请求内容前缀 hash。",
+	"config.sticky_session_header_name":      "会话 Header 名",
+	"config.sticky_session_header_name_desc": "客户端用于标识会话的 HTTP header 名称,默认 X-Session-Id。",
+
 	// Category labels
 	"config.category.basic":   "基础参数",
 	"config.category.request": "请求设置",
 	"config.category.key":     "密钥配置",
+	"config.category.sticky":  "粘性会话",
 
 	// Internal error messages (for fmt.Errorf usage)
 	"error.upstreams_required":       "upstreams字段是必需的",

@@ -70,6 +70,11 @@ func (ch *OpenAIResponseChannel) ExtractModel(c *gin.Context, bodyBytes []byte) 
 	return ""
 }
 
+// ExtractSessionKey scopes the hash to messages[0] or input for a stable session fingerprint.
+func (ch *OpenAIResponseChannel) ExtractSessionKey(c *gin.Context, bodyBytes []byte, strategy, headerName string) string {
+	return extractSessionKey(c, bodyBytes, strategy, headerName, openaiResponseHashSource)
+}
+
 func (ch *OpenAIResponseChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey, group *models.Group) (bool, error) {
 	upstreamURL := ch.getUpstreamURL()
 	if upstreamURL == nil {

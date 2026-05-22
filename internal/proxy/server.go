@@ -110,7 +110,14 @@ func (ps *ProxyServer) HandleProxy(c *gin.Context) {
 
 	isStream := channelHandler.IsStreamRequest(c, bodyBytes)
 
-	ps.executeRequestWithRetry(c, channelHandler, originalGroup, group, finalBodyBytes, isStream, startTime, 0)
+	var sessionKey string
+	if originalGroup.EffectiveConfig.EnableStickySession {
+		sessionKey = channelHandler.ExtractSessionKey(c, finalBodyBytes,
+			originalGroup.EffectiveConfig.StickySessionKeyStrategy,
+			originalGroup.EffectiveConfig.StickySessionHeaderName)
+	}
+
+	ps.executeRequestWithRetry(c, channelHandler, originalGroup, group, finalBodyBytes, isStream, startTime, 0, sessionKey)
 }
 
 // executeRequestWithRetry is the core recursive function for handling requests and retries.
@@ -123,10 +130,11 @@ func (ps *ProxyServer) executeRequestWithRetry(
 	isStream bool,
 	startTime time.Time,
 	retryCount int,
+	sessionKey string,
 ) {
 	cfg := group.EffectiveConfig
 
-	apiKey, err := ps.keyProvider.SelectKey(group.ID)
+	apiKey, isSticky, err := ps.keyProvider.SelectKeyWithSession(group.ID, sessionKey, cfg.StickySessionTTL)
 	if err != nil {
 		logrus.Errorf("Failed to select a key for group %s on attempt %d: %v", group.Name, retryCount+1, err)
 		response.Error(c, app_errors.NewAPIError(app_errors.ErrNoKeysAvailable, err.Error()))
@@ -237,6 +245,13 @@ func (ps *ProxyServer) executeRequestWithRetry(
 		// 使用解析后的错误信息更新密钥状态
 		ps.keyProvider.UpdateStatus(apiKey, group, false, parsedError)
 
+		// Sticky 命中且该 key 失败 → 同步清除映射,确保下一次递归不会再粘到这把 key
+		if isSticky && sessionKey != "" {
+			if cerr := ps.keyProvider.ClearSticky(group.ID, sessionKey); cerr != nil {
+				logrus.WithError(cerr).WithField("group_id", group.ID).Warn("Failed to clear sticky mapping after key failure")
+			}
+		}
+
 		// 判断是否为最后一次尝试
 		isLastAttempt := retryCount >= cfg.MaxRetries
 		requestType := models.RequestTypeRetry
@@ -257,12 +272,12 @@ func (ps *ProxyServer) executeRequestWithRetry(
 			return
 		}
 
-		ps.executeRequestWithRetry(c, channelHandler, originalGroup, group, bodyBytes, isStream, startTime, retryCount+1)
+		ps.executeRequestWithRetry(c, channelHandler, originalGroup, group, bodyBytes, isStream, startTime, retryCount+1, sessionKey)
 		return
 	}
 
 	// ps.keyProvider.UpdateStatus(apiKey, group, true) // 请求成功不再重置成功次数，减少IO消耗
-	logrus.Debugf("Request for group %s succeeded on attempt %d with key %s", group.Name, retryCount+1, utils.MaskAPIKey(apiKey.KeyValue))
+	logrus.Debugf("Request for group %s succeeded on attempt %d with key %s (sticky=%v)", group.Name, retryCount+1, utils.MaskAPIKey(apiKey.KeyValue), isSticky)
 
 	// Check if this is a model list request (needs special handling)
 	if shouldInterceptModelList(c.Request.URL.Path, c.Request.Method) {

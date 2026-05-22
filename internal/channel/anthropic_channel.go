@@ -73,6 +73,11 @@ func (ch *AnthropicChannel) ExtractModel(c *gin.Context, bodyBytes []byte) strin
 	return ""
 }
 
+// ExtractSessionKey scopes the hash to system + messages[0] for a stable session fingerprint.
+func (ch *AnthropicChannel) ExtractSessionKey(c *gin.Context, bodyBytes []byte, strategy, headerName string) string {
+	return extractSessionKey(c, bodyBytes, strategy, headerName, anthropicHashSource)
+}
+
 // ValidateKey checks if the given API key is valid by making a messages request.
 func (ch *AnthropicChannel) ValidateKey(ctx context.Context, apiKey *models.APIKey, group *models.Group) (bool, error) {
 	upstreamURL := ch.getUpstreamURL()

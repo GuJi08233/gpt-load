@@ -174,10 +174,21 @@ var MessagesJaJP = map[string]string{
 	"config.key_validation_timeout":          "キー検証タイムアウト（秒）",
 	"config.key_validation_timeout_desc":     "バックグラウンドで単一キーを検証する際のAPIリクエストタイムアウト（秒）。",
 
+	// Sticky session related
+	"config.enable_sticky_session":           "スティッキーセッションを有効化",
+	"config.enable_sticky_session_desc":      "有効にすると、同じセッション内の連続リクエストが同じAPIキーを再利用し、上流のpromptキャッシュを活用してヒット率を向上させ、コストを削減します。",
+	"config.sticky_session_ttl":              "スティッキーマッピングTTL（秒）",
+	"config.sticky_session_ttl_desc":         "セッションとキーのマッピングの有効期限（秒）。上流のpromptキャッシュ保持期間に合わせて調整してください。",
+	"config.sticky_session_key_strategy":     "セッション識別ストラテジー",
+	"config.sticky_session_key_strategy_desc": "header_then_hash: ヘッダー優先、無い場合はリクエスト前置部分のhash;header_only: ヘッダーのみ;hash_only: リクエスト前置部分のhashのみ。",
+	"config.sticky_session_header_name":      "セッションヘッダー名",
+	"config.sticky_session_header_name_desc": "クライアントがセッションを識別するHTTPヘッダー名。デフォルト: X-Session-Id。",
+
 	// Category labels
 	"config.category.basic":   "基本設定",
 	"config.category.request": "リクエスト設定",
 	"config.category.key":     "キー設定",
+	"config.category.sticky":  "スティッキーセッション",
 
 	// Internal error messages (for fmt.Errorf usage)
 	"error.upstreams_required":       "upstreamsフィールドは必須です",

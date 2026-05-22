@@ -39,6 +39,13 @@ func validateStringSettingValue(key, val string) error {
 			return fmt.Errorf("invalid value for %s (%q): %w", key, val, err)
 		}
 	}
+	if key == "sticky_session_key_strategy" {
+		switch val {
+		case "header_then_hash", "header_only", "hash_only":
+		default:
+			return fmt.Errorf("invalid value for %s (%q): must be one of header_then_hash, header_only, hash_only", key, val)
+		}
+	}
 	return nil
 }
 

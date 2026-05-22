@@ -32,6 +32,10 @@ type ChannelProxy interface {
 	// ExtractModel extracts the model name from the request.
 	ExtractModel(c *gin.Context, bodyBytes []byte) string
 
+	// ExtractSessionKey derives a session identifier for sticky routing.
+	// Returns "" when no identifier can be derived (caller falls back to round-robin).
+	ExtractSessionKey(c *gin.Context, bodyBytes []byte, strategy, headerName string) string
+
 	// ValidateKey checks if the given API key is valid.
 	ValidateKey(ctx context.Context, apiKey *models.APIKey, group *models.Group) (bool, error)
 

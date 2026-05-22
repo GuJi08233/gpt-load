@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 )
@@ -129,6 +130,12 @@ func (b *BaseChannel) GetHTTPClient() *http.Client {
 // GetStreamClient returns the client for streaming requests.
 func (b *BaseChannel) GetStreamClient() *http.Client {
 	return b.StreamClient
+}
+
+// ExtractSessionKey is the default implementation; channels override it to scope the hash domain
+// to a stable session prefix (e.g. system + first message) for accurate sticky routing.
+func (b *BaseChannel) ExtractSessionKey(c *gin.Context, bodyBytes []byte, strategy, headerName string) string {
+	return extractSessionKey(c, bodyBytes, strategy, headerName, nil)
 }
 
 // ApplyModelRedirect applies model redirection based on the group's redirect rules.

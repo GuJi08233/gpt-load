@@ -174,10 +174,21 @@ var MessagesEnUS = map[string]string{
 	"config.key_validation_timeout":          "Key Validation Timeout (seconds)",
 	"config.key_validation_timeout_desc":     "API request timeout (seconds) when validating a single key in the background.",
 
+	// Sticky session related
+	"config.enable_sticky_session":           "Enable Sticky Session",
+	"config.enable_sticky_session_desc":      "When enabled, consecutive requests in the same session reuse the same API key to leverage upstream prompt cache for higher hit rate and lower cost.",
+	"config.sticky_session_ttl":              "Sticky Mapping TTL (seconds)",
+	"config.sticky_session_ttl_desc":         "Expiration time (seconds) of the session-to-key mapping. Tune according to your upstream prompt cache retention.",
+	"config.sticky_session_key_strategy":     "Session Identification Strategy",
+	"config.sticky_session_key_strategy_desc": "header_then_hash: prefer header, fall back to request prefix hash; header_only: header only; hash_only: request prefix hash only.",
+	"config.sticky_session_header_name":      "Session Header Name",
+	"config.sticky_session_header_name_desc": "HTTP header name used by clients to identify the session. Default: X-Session-Id.",
+
 	// Category labels
 	"config.category.basic":   "Basic",
 	"config.category.request": "Request Settings",
 	"config.category.key":     "Key Configuration",
+	"config.category.sticky":  "Sticky Session",
 
 	// Internal error messages (for fmt.Errorf usage)
 	"error.upstreams_required":       "upstreams field is required",

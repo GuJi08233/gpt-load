@@ -40,6 +40,12 @@ type GroupConfig struct {
 	KeyValidationConcurrency     *int    `json:"key_validation_concurrency,omitempty"`
 	KeyValidationTimeoutSeconds  *int    `json:"key_validation_timeout_seconds,omitempty"`
 	EnableRequestBodyLogging     *bool   `json:"enable_request_body_logging,omitempty"`
+
+	// 粘性会话
+	EnableStickySession      *bool   `json:"enable_sticky_session,omitempty"`
+	StickySessionTTL         *int    `json:"sticky_session_ttl,omitempty"`
+	StickySessionKeyStrategy *string `json:"sticky_session_key_strategy,omitempty"`
+	StickySessionHeaderName  *string `json:"sticky_session_header_name,omitempty"`
 }
 
 // HeaderRule defines a single rule for header manipulation.
